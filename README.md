@@ -13,9 +13,9 @@ Install dependencies:
 
 ```powershell
 cd server
-pnpm install
+npm install
 cd ../client
-pnpm install
+npm install
 ```
 
 Set `server/.env`:
@@ -42,14 +42,14 @@ Run the API:
 
 ```powershell
 cd server
-pnpm dev
+npm run dev
 ```
 
 Run the client:
 
 ```powershell
 cd client
-pnpm dev
+npm run dev
 ```
 
 The client runs at `http://localhost:5173` and proxies `/api` to `http://localhost:5000`.
