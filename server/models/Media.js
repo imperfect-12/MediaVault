@@ -28,7 +28,7 @@ const mediaSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["planning", "in-progress", "completed", "dropped"],
+      enum: ["planning", "in-progress", "completed", "dropped", "live"],
       default: "planning",
     },
     rating: {

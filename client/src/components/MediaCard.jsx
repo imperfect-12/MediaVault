@@ -13,6 +13,7 @@ const statusLabels = {
   "in-progress": "In Progress",
   completed: "Completed",
   dropped: "Dropped",
+  live: "Live",
 };
 
 const getInitials = (name) =>

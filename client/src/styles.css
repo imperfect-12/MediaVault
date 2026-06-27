@@ -431,6 +431,11 @@ h3 {
   background: var(--danger);
 }
 
+.status-dot.live {
+  background: var(--warning);
+  box-shadow: 0 0 8px rgba(250, 204, 21, 0.55);
+}
+
 .card-body {
   padding: 10px 2px 0;
 }

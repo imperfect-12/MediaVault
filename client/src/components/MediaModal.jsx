@@ -15,6 +15,8 @@ const statuses = [
   { value: "dropped", label: "Dropped" },
 ];
 
+const liveStatus = { value: "live", label: "Live" };
+
 const initialForm = (media, defaultType) => ({
   name: media?.name || "",
   type: media?.type || defaultType || "movie",
@@ -60,6 +62,7 @@ const MediaModal = ({ media, defaultType, onClose, onSaved }) => {
 
   const isEditing = Boolean(media);
   const charsLeft = 300 - form.description.length;
+  const availableStatuses = form.type === "game" ? [...statuses, liveStatus] : statuses;
 
   useEffect(() => {
     const closeOnEscape = (event) => {
@@ -89,6 +92,14 @@ const MediaModal = ({ media, defaultType, onClose, onSaved }) => {
     setForm((current) => ({
       ...current,
       [field]: value,
+    }));
+  };
+
+  const setMediaType = (type) => {
+    setForm((current) => ({
+      ...current,
+      type,
+      status: type !== "game" && current.status === "live" ? "planning" : current.status,
     }));
   };
 
@@ -161,7 +172,7 @@ const MediaModal = ({ media, defaultType, onClose, onSaved }) => {
                   key={item.value}
                   className={form.type === item.value ? "is-selected" : ""}
                   type="button"
-                  onClick={() => setField("type", item.value)}
+                  onClick={() => setMediaType(item.value)}
                 >
                   {item.label}
                 </button>
@@ -183,7 +194,7 @@ const MediaModal = ({ media, defaultType, onClose, onSaved }) => {
           <fieldset>
             <legend>Status</legend>
             <div className="segmented-control status-control">
-              {statuses.map((item) => (
+              {availableStatuses.map((item) => (
                 <button
                   key={item.value}
                   className={form.status === item.value ? "is-selected" : ""}
