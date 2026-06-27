@@ -17,6 +17,8 @@ const statuses = [
 
 const liveStatus = { value: "live", label: "Live" };
 
+const getNameFromFile = (fileName) => fileName.replace(/\.[^/.]+$/, "");
+
 const initialForm = (media, defaultType) => ({
   name: media?.name || "",
   type: media?.type || defaultType || "movie",
@@ -56,6 +58,7 @@ const uploadToCloudinary = async (file) => {
 const MediaModal = ({ media, defaultType, onClose, onSaved }) => {
   const [form, setForm] = useState(() => initialForm(media, defaultType));
   const [file, setFile] = useState(null);
+  const [useImageName, setUseImageName] = useState(false);
   const [preview, setPreview] = useState(media?.imageUrl || "");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -107,7 +110,19 @@ const MediaModal = ({ media, defaultType, onClose, onSaved }) => {
     const selected = event.target.files?.[0];
     if (selected) {
       setFile(selected);
+      if (useImageName) {
+        setField("name", getNameFromFile(selected.name));
+      }
       setError("");
+    }
+  };
+
+  const handleUseImageName = (event) => {
+    const checked = event.target.checked;
+    setUseImageName(checked);
+
+    if (checked && file) {
+      setField("name", getNameFromFile(file.name));
     }
   };
 
@@ -153,16 +168,28 @@ const MediaModal = ({ media, defaultType, onClose, onSaved }) => {
         </div>
 
         <form className="media-form" onSubmit={handleSubmit}>
-          <label>
-            <span>Name</span>
+          <div className="name-field">
+            <div className="name-field-header">
+              <label htmlFor="media-name">Name</label>
+              <label className="filename-checkbox">
+                <input
+                  type="checkbox"
+                  checked={useImageName}
+                  onChange={handleUseImageName}
+                />
+                <span>Use image filename</span>
+              </label>
+            </div>
             <input
+              id="media-name"
               required
               type="text"
               value={form.name}
               onChange={(event) => setField("name", event.target.value)}
               placeholder="Baldur's Gate 3"
+              readOnly={useImageName}
             />
-          </label>
+          </div>
 
           <fieldset>
             <legend>Type</legend>

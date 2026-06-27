@@ -564,6 +564,47 @@ legend {
   font-weight: 800;
 }
 
+.name-field-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.name-field-header > label:first-child {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.filename-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.filename-checkbox input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--accent);
+}
+
+.filename-checkbox span {
+  display: inline;
+  margin: 0;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.name-field input[readonly] {
+  color: var(--muted);
+}
+
 input,
 textarea,
 select {
