@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { createMedia, updateMedia } from "../api/media";
+import { uploadImage } from "../api/upload";
+import { useSettings } from "../context/SettingsContext";
+import BulkUploadForm from "./BulkUploadForm";
 
 const mediaTypes = [
   { value: "manga", label: "Manga/Manhwa" },
@@ -29,41 +32,22 @@ const initialForm = (media, defaultType) => ({
   isFavourite: Boolean(media?.isFavourite),
 });
 
-const uploadToCloudinary = async (file) => {
-  const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-  const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
-
-  if (!cloudName || !uploadPreset) {
-    throw new Error("Cloudinary cloud name and unsigned upload preset are required.");
-  }
-
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("upload_preset", uploadPreset);
-
-  const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-    method: "POST",
-    body: formData,
-  });
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data?.error?.message || "Image upload failed.");
-  }
-
-  return data.secure_url;
-};
-
 const MediaModal = ({ media, defaultType, onClose, onSaved }) => {
+  const { settings } = useSettings();
+  const [mode, setMode] = useState("single");
+  const [bulkBusy, setBulkBusy] = useState(false);
   const [form, setForm] = useState(() => initialForm(media, defaultType));
   const [file, setFile] = useState(null);
-  const [useImageName, setUseImageName] = useState(false);
+  const [useImageName, setUseImageName] = useState(
+    () => !media && settings.useImageNameByDefault,
+  );
   const [preview, setPreview] = useState(media?.imageUrl || "");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [saving, setSaving] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const dragDepth = useRef(0);
+  const fileInputRef = useRef(null);
 
   const isEditing = Boolean(media);
   const charsLeft = 300 - form.description.length;
@@ -71,14 +55,14 @@ const MediaModal = ({ media, defaultType, onClose, onSaved }) => {
 
   useEffect(() => {
     const closeOnEscape = (event) => {
-      if (event.key === "Escape") {
+      if (event.key === "Escape" && !bulkBusy) {
         onClose();
       }
     };
 
     document.addEventListener("keydown", closeOnEscape);
     return () => document.removeEventListener("keydown", closeOnEscape);
-  }, [onClose]);
+  }, [bulkBusy, onClose]);
 
   useEffect(() => {
     if (!file) {
@@ -91,7 +75,10 @@ const MediaModal = ({ media, defaultType, onClose, onSaved }) => {
     return () => URL.revokeObjectURL(objectUrl);
   }, [file]);
 
-  const title = useMemo(() => (isEditing ? "Edit Entry" : "Add Entry"), [isEditing]);
+  const title = useMemo(
+    () => (isEditing ? "Edit Entry" : mode === "bulk" ? "Bulk Add" : "Add Entry"),
+    [isEditing, mode],
+  );
 
   const setField = (field, value) => {
     setForm((current) => ({
@@ -123,6 +110,7 @@ const MediaModal = ({ media, defaultType, onClose, onSaved }) => {
       setField("name", getNameFromFile(selected.name));
     }
     setError("");
+    setSuccess("");
   };
 
   const handleFile = (event) => {
@@ -172,9 +160,10 @@ const MediaModal = ({ media, defaultType, onClose, onSaved }) => {
     event.preventDefault();
     setSaving(true);
     setError("");
+    setSuccess("");
 
     try {
-      const imageUrl = file ? await uploadToCloudinary(file) : form.imageUrl;
+      const imageUrl = file ? await uploadImage(file) : form.imageUrl;
       const payload = {
         ...form,
         imageUrl,
@@ -182,7 +171,19 @@ const MediaModal = ({ media, defaultType, onClose, onSaved }) => {
       };
       const saved = isEditing ? await updateMedia(media._id, payload) : await createMedia(payload);
       onSaved(saved);
-      onClose();
+
+      if (!isEditing && settings.reopenAddAfterSave) {
+        setForm(initialForm(null, defaultType));
+        setFile(null);
+        setPreview("");
+        setUseImageName(settings.useImageNameByDefault);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+        setSuccess(`${saved.name} was added. Ready for another entry.`);
+      } else {
+        onClose();
+      }
     } catch (apiError) {
       setError(apiError?.response?.data?.message || apiError.message || "Could not save entry.");
     } finally {
@@ -191,9 +192,9 @@ const MediaModal = ({ media, defaultType, onClose, onSaved }) => {
   };
 
   return (
-    <div className="modal-backdrop" onMouseDown={onClose}>
+    <div className="modal-backdrop" onMouseDown={bulkBusy ? undefined : onClose}>
       <div
-        className="media-modal"
+        className={`media-modal${mode === "bulk" ? " bulk-mode" : ""}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="media-modal-title"
@@ -204,11 +205,49 @@ const MediaModal = ({ media, defaultType, onClose, onSaved }) => {
             <p className="eyebrow">MediaVault</p>
             <h2 id="media-modal-title">{title}</h2>
           </div>
-          <button className="icon-button" type="button" aria-label="Close modal" onClick={onClose}>
+          <button
+            className="icon-button"
+            type="button"
+            aria-label="Close modal"
+            disabled={bulkBusy}
+            onClick={onClose}
+          >
             x
           </button>
         </div>
 
+        {!isEditing && (
+          <div className="modal-mode-tabs" role="tablist" aria-label="Add entry mode">
+            <button
+              className={mode === "single" ? "is-selected" : ""}
+              type="button"
+              role="tab"
+              aria-selected={mode === "single"}
+              disabled={bulkBusy}
+              onClick={() => setMode("single")}
+            >
+              Single entry
+            </button>
+            <button
+              className={mode === "bulk" ? "is-selected" : ""}
+              type="button"
+              role="tab"
+              aria-selected={mode === "bulk"}
+              onClick={() => setMode("bulk")}
+            >
+              Bulk upload
+            </button>
+          </div>
+        )}
+
+        {!isEditing && mode === "bulk" ? (
+          <BulkUploadForm
+            defaultType={defaultType}
+            onBusyChange={setBulkBusy}
+            onClose={onClose}
+            onSaved={onSaved}
+          />
+        ) : (
         <form className="media-form" onSubmit={handleSubmit}>
           <div className="name-field">
             <div className="name-field-header">
@@ -301,7 +340,7 @@ const MediaModal = ({ media, defaultType, onClose, onSaved }) => {
             onDrop={handleDrop}
           >
             <span>Image</span>
-            <input type="file" accept="image/*" onChange={handleFile} />
+            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFile} />
             {preview ? (
               <div className="poster-preview">
                 <img src={preview} alt="Selected poster preview" />
@@ -322,11 +361,13 @@ const MediaModal = ({ media, defaultType, onClose, onSaved }) => {
           </label>
 
           {error && <p className="form-error">{error}</p>}
+          {success && <p className="form-success" role="status">{success}</p>}
 
           <button className="primary-button" type="submit" disabled={saving}>
             {saving ? "Saving..." : isEditing ? "Save Changes" : "Add to Library"}
           </button>
         </form>
+        )}
       </div>
     </div>
   );

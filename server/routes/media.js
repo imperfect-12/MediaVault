@@ -4,6 +4,8 @@ import authMiddleware from "../middleware/auth.js";
 import Media from "../models/Media.js";
 
 const router = express.Router();
+const MAX_BULK_MEDIA = 20;
+const allowedTypes = ["manga", "anime", "game"];
 
 const allowedFields = ["name", "description", "imageUrl", "type", "status", "rating", "isFavourite"];
 
@@ -62,6 +64,57 @@ router.post("/", async (req, res, next) => {
       user: req.user.id,
     });
 
+    return res.status(201).json({ media });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.post("/bulk", async (req, res, next) => {
+  try {
+    const items = req.body?.media;
+
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ message: "Add at least one media entry." });
+    }
+
+    if (items.length > MAX_BULK_MEDIA) {
+      return res.status(400).json({ message: `Bulk uploads are limited to ${MAX_BULK_MEDIA} entries.` });
+    }
+
+    const invalidShapeIndex = items.findIndex(
+      (item) => !item || typeof item !== "object" || Array.isArray(item),
+    );
+
+    if (invalidShapeIndex !== -1) {
+      return res.status(400).json({ message: `Entry ${invalidShapeIndex + 1} is not valid.` });
+    }
+
+    const payloads = items.map((item) => {
+      const payload = cleanMediaPayload(item);
+      return {
+        name: payload.name,
+        type: payload.type,
+        imageUrl: payload.imageUrl || "",
+        description: "",
+        status: "planning",
+        rating: null,
+        isFavourite: false,
+        user: req.user.id,
+      };
+    });
+
+    const invalidIndex = payloads.findIndex(
+      (payload) => !payload.name || !allowedTypes.includes(payload.type),
+    );
+
+    if (invalidIndex !== -1) {
+      return res.status(400).json({
+        message: `Entry ${invalidIndex + 1} needs a name and a valid media type.`,
+      });
+    }
+
+    const media = await Media.insertMany(payloads);
     return res.status(201).json({ media });
   } catch (error) {
     return next(error);

@@ -12,6 +12,11 @@ export const createMedia = async (data) => {
   return res.data.media;
 };
 
+export const createMediaBulk = async (media) => {
+  const res = await api.post("/media/bulk", { media });
+  return res.data.media;
+};
+
 export const updateMedia = async (id, data) => {
   const res = await api.patch(`/media/${id}`, data);
   return res.data.media;
