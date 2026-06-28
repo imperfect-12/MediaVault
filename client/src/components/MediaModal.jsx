@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { createMedia, updateMedia } from "../api/media";
 
@@ -62,6 +62,8 @@ const MediaModal = ({ media, defaultType, onClose, onSaved }) => {
   const [preview, setPreview] = useState(media?.imageUrl || "");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragDepth = useRef(0);
 
   const isEditing = Boolean(media);
   const charsLeft = 300 - form.description.length;
@@ -106,15 +108,55 @@ const MediaModal = ({ media, defaultType, onClose, onSaved }) => {
     }));
   };
 
-  const handleFile = (event) => {
-    const selected = event.target.files?.[0];
-    if (selected) {
-      setFile(selected);
-      if (useImageName) {
-        setField("name", getNameFromFile(selected.name));
-      }
-      setError("");
+  const selectFile = (selected) => {
+    if (!selected) {
+      return;
     }
+
+    if (!selected.type.startsWith("image/")) {
+      setError("Please choose an image file for the poster.");
+      return;
+    }
+
+    setFile(selected);
+    if (useImageName) {
+      setField("name", getNameFromFile(selected.name));
+    }
+    setError("");
+  };
+
+  const handleFile = (event) => {
+    selectFile(event.target.files?.[0]);
+  };
+
+  const handleDragEnter = (event) => {
+    event.preventDefault();
+    if (!Array.from(event.dataTransfer.types).includes("Files")) {
+      return;
+    }
+
+    dragDepth.current += 1;
+    setIsDragging(true);
+  };
+
+  const handleDragOver = (event) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "copy";
+  };
+
+  const handleDragLeave = (event) => {
+    event.preventDefault();
+    dragDepth.current = Math.max(0, dragDepth.current - 1);
+    if (dragDepth.current === 0) {
+      setIsDragging(false);
+    }
+  };
+
+  const handleDrop = (event) => {
+    event.preventDefault();
+    dragDepth.current = 0;
+    setIsDragging(false);
+    selectFile(event.dataTransfer.files?.[0]);
   };
 
   const handleUseImageName = (event) => {
@@ -251,13 +293,22 @@ const MediaModal = ({ media, defaultType, onClose, onSaved }) => {
             </div>
           </label>
 
-          <label className="drop-zone">
+          <label
+            className={`drop-zone${isDragging ? " is-dragging" : ""}`}
+            onDragEnter={handleDragEnter}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
             <span>Image</span>
             <input type="file" accept="image/*" onChange={handleFile} />
             {preview ? (
-              <img src={preview} alt="Selected poster preview" />
+              <div className="poster-preview">
+                <img src={preview} alt="Selected poster preview" />
+                <strong>{isDragging ? "Drop to replace the poster" : "Drop another image to replace it"}</strong>
+              </div>
             ) : (
-              <strong>Drop in a poster image</strong>
+              <strong>{isDragging ? "Drop the poster here" : "Drag and drop a poster image here"}</strong>
             )}
           </label>
 

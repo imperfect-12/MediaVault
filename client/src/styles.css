@@ -754,6 +754,13 @@ small {
   border-radius: 8px;
   padding: 14px;
   background: rgba(255, 255, 255, 0.02);
+  transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+
+.drop-zone.is-dragging {
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.04);
 }
 
 .drop-zone input {
@@ -768,6 +775,12 @@ small {
   border: 1px solid var(--border);
   border-radius: 8px;
   object-fit: cover;
+}
+
+.poster-preview {
+  display: flex;
+  gap: 16px;
+  align-items: center;
 }
 
 .drop-zone strong {
