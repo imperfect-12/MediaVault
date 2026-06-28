@@ -9,7 +9,7 @@ import AnimePage from "./pages/AnimePage";
 import GamesPage from "./pages/GamesPage";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
-import MoviesPage from "./pages/MoviesPage";
+import MangaPage from "./pages/MangaPage";
 import RegisterPage from "./pages/RegisterPage";
 import "./styles.css";
 
@@ -30,7 +30,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route element={<ProtectedRoute />}>
             <Route element={<AppLayout />}>
               <Route index element={<HomePage />} />
-              <Route path="/movies" element={<MoviesPage />} />
+              <Route path="/manga" element={<MangaPage />} />
               <Route path="/anime" element={<AnimePage />} />
               <Route path="/games" element={<GamesPage />} />
             </Route>

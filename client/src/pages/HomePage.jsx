@@ -7,14 +7,14 @@ import MediaModal from "../components/MediaModal";
 import { useAuth } from "../context/AuthContext";
 
 const sections = [
-  { type: "movie", title: "Movies", path: "/movies" },
+  { type: "manga", title: "Manga & Manhwa", path: "/manga" },
   { type: "anime", title: "Anime", path: "/anime" },
   { type: "game", title: "Games", path: "/games" },
 ];
 
 const filterOptions = [
   { value: "all", label: "All" },
-  { value: "movie", label: "Movies" },
+  { value: "manga", label: "Manga" },
   { value: "anime", label: "Anime" },
   { value: "game", label: "Games" },
 ];
@@ -58,7 +58,7 @@ const HomePage = () => {
           ...acc,
           [item.type]: acc[item.type] + 1,
         }),
-        { movie: 0, anime: 0, game: 0 },
+        { manga: 0, anime: 0, game: 0 },
       ),
     [media],
   );
@@ -97,8 +97,8 @@ const HomePage = () => {
         <p className="eyebrow">Private media library</p>
         <h1>Your Library, {user?.username}</h1>
         <p>
-          A dark shelf for the films, series, anime, and games you are planning,
-          playing, watching, and finishing.
+          A dark shelf for the manga, manhwa, anime, and games you are reading,
+          watching, playing, and finishing.
         </p>
       </section>
 

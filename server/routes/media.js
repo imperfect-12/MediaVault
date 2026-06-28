@@ -38,7 +38,7 @@ router.get("/", async (req, res, next) => {
     const filter = { user: req.user.id };
     const { type } = req.query;
 
-    if (type && ["movie", "anime", "game"].includes(type)) {
+    if (type && ["manga", "anime", "game"].includes(type)) {
       filter.type = type;
     }
 

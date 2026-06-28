@@ -3,7 +3,7 @@ import { useState } from "react";
 import { deleteMedia, updateMedia } from "../api/media";
 
 const typeLabels = {
-  movie: "Movie",
+  manga: "Manga/Manhwa",
   anime: "Anime",
   game: "Game",
 };

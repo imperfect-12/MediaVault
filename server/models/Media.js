@@ -23,7 +23,7 @@ const mediaSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ["movie", "anime", "game"],
+      enum: ["manga", "anime", "game"],
       required: true,
     },
     status: {

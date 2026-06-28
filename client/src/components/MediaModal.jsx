@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createMedia, updateMedia } from "../api/media";
 
 const mediaTypes = [
-  { value: "movie", label: "Movie/Series" },
+  { value: "manga", label: "Manga/Manhwa" },
   { value: "anime", label: "Anime" },
   { value: "game", label: "Game" },
 ];
@@ -21,7 +21,7 @@ const getNameFromFile = (fileName) => fileName.replace(/\.[^/.]+$/, "");
 
 const initialForm = (media, defaultType) => ({
   name: media?.name || "",
-  type: media?.type || defaultType || "movie",
+  type: media?.type || defaultType || "manga",
   description: media?.description || "",
   imageUrl: media?.imageUrl || "",
   status: media?.status || "planning",

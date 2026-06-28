@@ -1,6 +1,6 @@
 # MediaVault
 
-MediaVault is a MERN personal media tracker for movies, series, anime, and games. It uses JWT auth in httpOnly cookies, MongoDB via Mongoose, and Cloudinary poster uploads from the React client.
+MediaVault is a MERN personal media tracker for manga, manhwa, anime, and games. It uses JWT auth in httpOnly cookies, MongoDB via Mongoose, and Cloudinary poster uploads from the React client.
 
 ## Structure
 

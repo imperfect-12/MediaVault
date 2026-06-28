@@ -32,8 +32,8 @@ const Navbar = () => {
         <NavLink to="/" onClick={closeMenu}>
           Home
         </NavLink>
-        <NavLink to="/movies" onClick={closeMenu}>
-          Movies
+        <NavLink to="/manga" onClick={closeMenu}>
+          Manga
         </NavLink>
         <NavLink to="/anime" onClick={closeMenu}>
           Anime
